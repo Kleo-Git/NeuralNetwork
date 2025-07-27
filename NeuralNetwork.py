@@ -21,6 +21,15 @@ class Activation_Step:
         #Applies the Step activation function
         #Returns 1 for inputs >= 0, otherwise returns 0
         self.output = np.where(inputs >= 0, 1, 0)
+        
+class Activation_Softmax:
+    def forward(self, inputs): 
+        #Calculate the unormalized probabilties
+        exp_values = np.exp(inputs - np.max(inputs, axis=1, keepdims=True))
+        #Normalize the probabilities for each sample
+        probabilities = exp_values / np.sum(exp_values, axis=1, keepdims=True)
+        self.output = probabilities
+        
 
 # Dense (fully connected) layer class
 class Layer_Dense:
@@ -51,6 +60,13 @@ dense1 = Layer_Dense(2, 3)
 #Create a ReLU activation to be used
 activation1 = Activation_ReLU()
 
+#Create a second dense layer with 3 (need 3 since the previous layer has 3 outputs)
+#input features and 3 output values
+dense2 = Layer_Dense(3,3)
+
+#Create a softmax activation
+activation2 = Activation_Softmax()
+
 #Perform a forward pass of data through the layer
 dense1.forward(X)
 
@@ -58,8 +74,15 @@ dense1.forward(X)
 #Takes in output from previous layer
 activation1.forward(dense1.output)
 
-print(dense1.output[:5])
-print(activation1.output[:5])
+#Forward pass through second dense layer
+#Takes outputs of activation function 1 as inputs
+dense2.forward(activation1.output)
+
+#Make a forward pass through the softmax activation function
+activation2.forward(dense2.output)
+
+
+print(activation2.output[:5])
 
 
 
