@@ -10,6 +10,14 @@ class Activation_ReLU:
         #Replaces all negative values with 0, positive values remain unchanged
         self.output = np.maximum(0, inputs)
         
+    def backward(self, dvalues):
+        
+        #Make a copy so we can modify without changing the original values
+        self.dinputs = dvalues.copy()
+        
+        #Zero gradient if inputs are less then 0
+        self.dinputs[self.inputs <= 0] = 0
+        
 class Activation_Sigmoid:
     def forward(self, inputs):
         
@@ -17,6 +25,14 @@ class Activation_Sigmoid:
         #Returns input values in the range (0,1) using a curve
         #Curve rapidly changes near 0, smoothes out at larger values
         self.output = 1 / (1+np.exp(-inputs))
+    
+    def backward(self, dvalues):
+        
+        #Make a copy so we can modify without changing the original values
+        self.dinputs = dvalues.copy()
+        
+        #Zero gradient if inputs are less then 0
+        self.dinputs = dvalues * (self.output * (1-self.output))
         
 class Activation_Step:
     def forward(self, inputs):
@@ -24,6 +40,11 @@ class Activation_Step:
         #Applies the Step activation function
         #Returns 1 for inputs >= 0, otherwise returns 0
         self.output = np.where(inputs >= 0, 1, 0)
+    
+    def backward(self, dvalues):
+        #Derivative is 0 at all points, except 0 where it is undefined
+        #This is why we dont use the step function
+        self.dinputs = np.zeros_like(dvalues)
         
 class Activation_Softmax:
     def forward(self, inputs): 
@@ -88,7 +109,15 @@ class Layer_Dense:
         
         #Compute the output of a foward pass of a layer
         self.output = np.dot(inputs, self.weights) + self.biases
-
+    
+    def backward(self, dvalues):
+        
+        #Gradients on parameters
+        self.dweights = np.dot(self.inputs.T, dvalues)
+        self.dbiases = np.sum(dvalues, axis=0, keepdims=True)
+        #Gradients on values
+        self.dinputs = np.dot(dvalues, self.weights.T)
+        
 #Initialize nnfs, sets random seed and default float precision
 nnfs.init()
 
