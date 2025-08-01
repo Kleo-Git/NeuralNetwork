@@ -3,9 +3,36 @@ import matplotlib.pyplot as plt
 import nnfs
 from nnfs.datasets import spiral_data
 
+# Dense (fully connected) layer class
+class Layer_Dense:
+    def __init__(self, n_inputs, n_neurons):
+        
+        #Initialize weights with small random values
+        self.weights = 0.01 * np.random.randn(n_inputs, n_neurons)
+        
+        #Initialize biases with zeroes
+        self.biases = np.zeros((1, n_neurons))
+        
+    def forward(self, inputs):
+        
+        self.inputs = inputs
+        #Compute the output of a foward pass of a layer
+        self.output = np.dot(inputs, self.weights) + self.biases
+    
+    def backward(self, dvalues):
+        
+        #Gradients on parameters
+        self.dweights = np.dot(self.inputs.T, dvalues)
+        
+        self.dbiases = np.sum(dvalues, axis=0, keepdims=True)
+        
+        #Gradients on values
+        self.dinputs = np.dot(dvalues, self.weights.T)
+
 class Activation_ReLU:
     def forward(self, inputs):
         
+        self.inputs = inputs
         #Applies the ReLU activation function
         #Replaces all negative values with 0, positive values remain unchanged
         self.output = np.maximum(0, inputs)
@@ -49,6 +76,7 @@ class Activation_Step:
 class Activation_Softmax:
     def forward(self, inputs): 
         
+        self.inputs = inputs
         #Calculate the unormalized probabilties
         exp_values = np.exp(inputs - np.max(inputs, axis=1, keepdims=True))
         
@@ -122,30 +150,35 @@ class Loss_CategoricalCrossEntropy(Loss):
         self.dinputs = -y_actual/dvalues
         #Normalize gradient
         self.dinputs = self.dinputs/samples
-            
 
-# Dense (fully connected) layer class
-class Layer_Dense:
-    def __init__(self, n_inputs, n_neurons):
+class Activation_Softmax_Loss_CategoricalCrossEntropy():
+    #Initialize activation and loss objects
+    def __init__(self):
+        self.activation = Activation_Softmax()
+        self.loss = Loss_CategoricalCrossEntropy()
         
-        #Initialize weights with small random values
-        self.weights = 0.01 * np.random.randn(n_inputs, n_neurons)
-        
-        #Initialize biases with zeroes
-        self.biases = np.zeros((1, n_neurons))
-        
-    def forward(self, inputs):
-        
-        #Compute the output of a foward pass of a layer
-        self.output = np.dot(inputs, self.weights) + self.biases
+    def forward(self, inputs, y_actual):
+            #Output layer's activation function
+            self.activation.forward(inputs)
+            #Set output
+            self.output = self.activation.output
+            #Calculate loss value
+            return self.loss.calculate(self.output, y_actual)
     
-    def backward(self, dvalues):
+    def backward(self, dvalues, y_actual):
+        #Number of samples
+        samples = len(dvalues)
         
-        #Gradients on parameters
-        self.dweights = np.dot(self.inputs.T, dvalues)
-        self.dbiases = np.sum(dvalues, axis=0, keepdims=True)
-        #Gradients on values
-        self.dinputs = np.dot(dvalues, self.weights.T)
+        #If labels are one-hot vectors turn them to discrete values
+        if len(y_actual.shape) == 2:
+            y_actual = np.argmax(y_actual, axis=1)
+            
+        #Copy for future modification
+        self.dinputs = dvalues.copy()
+        #Calculate gradient
+        self.dinputs[range(samples), y_actual] -= 1
+        #Normalize
+        self.dinputs = self.dinputs / samples
         
 #Initialize nnfs, sets random seed and default float precision
 nnfs.init()
@@ -168,11 +201,8 @@ activation1 = Activation_ReLU()
 #input features and 3 output values
 dense2 = Layer_Dense(3,3)
 
-#Create a softmax activation
-activation2 = Activation_Softmax()
-
-# Create loss function
-loss_function = Loss_CategoricalCrossEntropy()
+#Create softmax combined loss and acitvation
+loss_activation = Activation_Softmax_Loss_CategoricalCrossEntropy()
 
 #Perform a forward pass of data through the layer
 dense1.forward(X)
@@ -185,25 +215,33 @@ activation1.forward(dense1.output)
 #Takes outputs of activation function 1 as inputs
 dense2.forward(activation1.output)
 
-#Make a forward pass through the softmax activation function
-activation2.forward(dense2.output)
+#Perform forward pass through the activation/loss function
+#takes output of second dense layer and returns loss
+loss = loss_activation.forward(dense2.output, y)
 
-print(activation2.output[:5])
-
-#Forward pass through activation function
-#Takes output of second dense layer and returns loss
-loss = loss_function.calculate(activation2.output, y)
+print(loss_activation.output[:5])
 
 print("loss =", loss)
 
 #Calculate the accuracy of the model
 #This is simply how often the models predictions are correct
-predictions = np.argmax(activation2.output, axis=1)
+predictions = np.argmax(loss_activation.output, axis=1)
 if len(y.shape) == 2:
     y = np.argmax(y, axis=1)
 accuracy = np.mean(predictions == y)
 
 print("accuracy =", accuracy)
+
+#Perform a backward pass
+loss_activation.backward(loss_activation.output, y)
+dense2.backward(loss_activation.dinputs)
+activation1.backward(dense2.dinputs)
+dense1.backward(activation1.dinputs)
+
+print(dense1.dweights)
+print(dense1.dbiases)
+print(dense2.dweights)
+print(dense2.dbiases)
 
 
 
