@@ -57,6 +57,19 @@ class Activation_Softmax:
         
         self.output = probabilities
         
+    def backward(self, dvalues):
+        
+        #Create unintialized array with shape of dvalues
+        self.dinputs = np.empty_like(dvalues)
+        
+        for i, (single_output, single_dvalues) in enumerate(zip(self.output, dvalues)):
+            #Flatten output array
+            single_output = single_output.reshape(-1,1)
+            #Calculate the jacobian
+            jacobian = np.diagflat(single_output) - np.dot(single_output, single_output.T)
+            #Calculate sample wise gradient and add to array of sample gradients
+            self.dinputs[i] = np.dot(jacobian, single_dvalues)
+        
 class Loss:
     #Calculates the data and regularization losses
     def calculate(self, output, y):
@@ -93,6 +106,22 @@ class Loss_CategoricalCrossEntropy(Loss):
         #Calculate the loss value
         negative_log_likelihoods = -np.log(correct_confidences)
         return negative_log_likelihoods
+    
+    def backward(self, dvalues, y_actual):
+        
+        #Number of samples
+        samples = len(dvalues)
+        #Number of labels in every sample
+        labels = len(dvalues[0])
+        
+        #If labels are sparse turn them into one-hot vector
+        if len(y_actual.shape) == 1:
+            y_actual = np.eye(labels)[y_actual]
+            
+        #Calculate gradient based on derivative function
+        self.dinputs = -y_actual/dvalues
+        #Normalize gradient
+        self.dinputs = self.dinputs/samples
             
 
 # Dense (fully connected) layer class
