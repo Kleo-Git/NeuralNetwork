@@ -31,9 +31,9 @@ dense2 = Layer_Dense(64,3)
 loss_activation = Activation_Softmax_Loss_CategoricalCrossEntropy()
 
 #Create optimizer object
-optimizer = Optimizer_SGD()
+optimizer = Optimizer_SGD(4, decay_rate=9e-4)
 
-for epoch in range(10001):
+for epoch in range(20001):
     #Perform a forward pass of data through the layer
     dense1.forward(X)
     
@@ -57,15 +57,18 @@ for epoch in range(10001):
     accuracy = np.mean(predictions == y)
     
     if not epoch % 100:
-        print(f"epoch: {epoch}," + f"accuracy = {accuracy:.3f}," + f"loss = {loss:.3f}")
+        print(f"epoch = {epoch}," + f"accuracy = {accuracy:.3f}," + f"loss = {loss:.3f}" +
+              f"learning rate = {optimizer.current_learning_rate:.3f}")
     
     loss_activation.backward(loss_activation.output, y)
     dense2.backward(loss_activation.dinputs)    
     activation1.backward(dense2.dinputs)
     dense1.backward(activation1.dinputs)
     
+    optimizer.pre_update_parameters()
     optimizer.update_parameters(dense1)
     optimizer.update_parameters(dense2)
+    optimizer.post_update_parameters()
 
 print("accuracy =", accuracy)
 
