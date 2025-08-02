@@ -5,7 +5,7 @@ from nnfs.datasets import spiral_data
 from layers import Layer_Dense
 from activations import Activation_ReLU
 from combined import Activation_Softmax_Loss_CategoricalCrossEntropy
-from optimizers import Optimizer_SGD
+from optimizers import Optimizer_SGD, Optimizer_Adagrad, Optimizer_RMSprop, Optimizer_Adam
 
 #Initialize nnfs, sets random seed and default float precision
 nnfs.init()
@@ -31,7 +31,7 @@ dense2 = Layer_Dense(64,3)
 loss_activation = Activation_Softmax_Loss_CategoricalCrossEntropy()
 
 #Create optimizer object
-optimizer = Optimizer_SGD(1, decay_rate=1e-3, momentum=0.9)
+optimizer = Optimizer_Adam(learning_rate=0.05, decay_rate=5e-7)
 
 for epoch in range(10001):
     #Perform a forward pass of data through the layer
