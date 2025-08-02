@@ -179,7 +179,17 @@ class Activation_Softmax_Loss_CategoricalCrossEntropy():
         self.dinputs[range(samples), y_actual] -= 1
         #Normalize
         self.dinputs = self.dinputs / samples
-        
+
+class Optimizer_SGD:
+    #Initialize optimizer
+    #Set learning rate = 1 by default
+    def __init__ (self, learning_rate=1.0):
+        self.learning_rate = learning_rate
+    
+    def update_parameters(self, layer):
+        layer.weights += -self.learning_rate * layer.dweights
+        layer.biases += -self.learning_rate * layer.dbiases
+
 #Initialize nnfs, sets random seed and default float precision
 nnfs.init()
 
@@ -191,18 +201,21 @@ plt.scatter(X[:, 0],X[:, 1], c=y, cmap='brg')
 plt.show()
 
 
-#Create a dense layer with 2 input features and 3 output neurons
-dense1 = Layer_Dense(2, 3)
+#Create a dense layer with 2 input features and 64 output values
+dense1 = Layer_Dense(2, 64)
 
 #Create a ReLU activation to be used
 activation1 = Activation_ReLU()
 
-#Create a second dense layer with 3 (need 3 since the previous layer has 3 outputs)
+#Create a second dense layer with 64 (need 64 since the previous layer has 64 outputs)
 #input features and 3 output values
-dense2 = Layer_Dense(3,3)
+dense2 = Layer_Dense(64,3)
 
 #Create softmax combined loss and acitvation
 loss_activation = Activation_Softmax_Loss_CategoricalCrossEntropy()
+
+#Create optimizer object
+optimizer = Optimizer_SGD()
 
 #Perform a forward pass of data through the layer
 dense1.forward(X)
@@ -238,10 +251,37 @@ dense2.backward(loss_activation.dinputs)
 activation1.backward(dense2.dinputs)
 dense1.backward(activation1.dinputs)
 
-print(dense1.dweights)
-print(dense1.dbiases)
-print(dense2.dweights)
-print(dense2.dbiases)
+optimizer.update_parameters(dense1)
+optimizer.update_parameters(dense2)
+
+#Perform a forward pass of data through the layer
+dense1.forward(X)
+
+#Forward pass through activation function
+#Takes in output from previous layer
+activation1.forward(dense1.output)
+
+#Forward pass through second dense layer
+#Takes outputs of activation function 1 as inputs
+dense2.forward(activation1.output)
+
+#Perform forward pass through the activation/loss function
+#takes output of second dense layer and returns loss
+loss = loss_activation.forward(dense2.output, y)
+
+print(loss_activation.output[:5])
+
+print("loss =", loss)
+
+#Calculate the accuracy of the model
+#This is simply how often the models predictions are correct
+predictions = np.argmax(loss_activation.output, axis=1)
+if len(y.shape) == 2:
+    y = np.argmax(y, axis=1)
+accuracy = np.mean(predictions == y)
+
+print("accuracy =", accuracy)
+
 
 
 
