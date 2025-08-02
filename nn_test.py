@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 import nnfs
 from nnfs.datasets import spiral_data
 from layers import Layer_Dense
-from activations import Activation_ReLU, Activation_Softmax
+from activations import Activation_ReLU
 from combined import Activation_Softmax_Loss_CategoricalCrossEntropy
 from optimizers import Optimizer_SGD
 
