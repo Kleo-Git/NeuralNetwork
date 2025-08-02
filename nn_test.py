@@ -33,72 +33,41 @@ loss_activation = Activation_Softmax_Loss_CategoricalCrossEntropy()
 #Create optimizer object
 optimizer = Optimizer_SGD()
 
-#Perform a forward pass of data through the layer
-dense1.forward(X)
+for epoch in range(10001):
+    #Perform a forward pass of data through the layer
+    dense1.forward(X)
+    
+    #Forward pass through activation function
+    #Takes in output from previous layer
+    activation1.forward(dense1.output)
+    
+    #Forward pass through second dense layer
+    #Takes outputs of activation function 1 as inputs
+    dense2.forward(activation1.output)
 
-#Forward pass through activation function
-#Takes in output from previous layer
-activation1.forward(dense1.output)
-
-#Forward pass through second dense layer
-#Takes outputs of activation function 1 as inputs
-dense2.forward(activation1.output)
-
-#Perform forward pass through the activation/loss function
-#takes output of second dense layer and returns loss
-loss = loss_activation.forward(dense2.output, y)
-
-print(loss_activation.output[:5])
-
-print("loss =", loss)
-
-#Calculate the accuracy of the model
-#This is simply how often the models predictions are correct
-predictions = np.argmax(loss_activation.output, axis=1)
-if len(y.shape) == 2:
-    y = np.argmax(y, axis=1)
-accuracy = np.mean(predictions == y)
-
-print("accuracy =", accuracy)
-
-#Perform a backward pass
-loss_activation.backward(loss_activation.output, y)
-dense2.backward(loss_activation.dinputs)
-activation1.backward(dense2.dinputs)
-dense1.backward(activation1.dinputs)
-
-optimizer.update_parameters(dense1)
-optimizer.update_parameters(dense2)
-
-#Perform a forward pass of data through the layer
-dense1.forward(X)
-
-#Forward pass through activation function
-#Takes in output from previous layer
-activation1.forward(dense1.output)
-
-#Forward pass through second dense layer
-#Takes outputs of activation function 1 as inputs
-dense2.forward(activation1.output)
-
-#Perform forward pass through the activation/loss function
-#takes output of second dense layer and returns loss
-loss = loss_activation.forward(dense2.output, y)
-
-print(loss_activation.output[:5])
-
-print("loss =", loss)
-
-#Calculate the accuracy of the model
-#This is simply how often the models predictions are correct
-predictions = np.argmax(loss_activation.output, axis=1)
-if len(y.shape) == 2:
-    y = np.argmax(y, axis=1)
-accuracy = np.mean(predictions == y)
+    #Perform forward pass through the activation/loss function
+    #takes output of second dense layer and returns loss
+    loss = loss_activation.forward(dense2.output, y)
+    
+    #Calculate the accuracy of the model
+    #This is simply how often the models predictions are correct
+    predictions = np.argmax(loss_activation.output, axis=1)
+    if len(y.shape) == 2:
+        y = np.argmax(y, axis=1)
+    accuracy = np.mean(predictions == y)
+    
+    if not epoch % 100:
+        print(f"epoch: {epoch}," + f"accuracy = {accuracy:.3f}," + f"loss = {loss:.3f}")
+    
+    loss_activation.backward(loss_activation.output, y)
+    dense2.backward(loss_activation.dinputs)    
+    activation1.backward(dense2.dinputs)
+    dense1.backward(activation1.dinputs)
+    
+    optimizer.update_parameters(dense1)
+    optimizer.update_parameters(dense2)
 
 print("accuracy =", accuracy)
-
-
 
 
 
