@@ -31,9 +31,9 @@ dense2 = Layer_Dense(64,3)
 loss_activation = Activation_Softmax_Loss_CategoricalCrossEntropy()
 
 #Create optimizer object
-optimizer = Optimizer_SGD(4, decay_rate=9e-4)
+optimizer = Optimizer_SGD(1, decay_rate=1e-3, momentum=0.9)
 
-for epoch in range(20001):
+for epoch in range(10001):
     #Perform a forward pass of data through the layer
     dense1.forward(X)
     
