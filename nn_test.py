@@ -2,6 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import nnfs
 from nnfs.datasets import spiral_data
+from losses import Loss
 from layers import Layer_Dense
 from activations import Activation_ReLU
 from combined import Activation_Softmax_Loss_CategoricalCrossEntropy
@@ -18,7 +19,7 @@ plt.scatter(X[:, 0],X[:, 1], c=y, cmap='brg')
 plt.show()
 
 #Create a dense layer with 2 input features and 64 output values
-dense1 = Layer_Dense(2, 64)
+dense1 = Layer_Dense(2, 64, weight_regularizer_l2=5e-4, bias_regularizer_l2=5e-4)
 
 #Create a ReLU activation to be used
 activation1 = Activation_ReLU()
@@ -27,11 +28,14 @@ activation1 = Activation_ReLU()
 #input features and 3 output values
 dense2 = Layer_Dense(64,3)
 
+loss_function = Loss()
+
 #Create softmax combined loss and acitvation
 loss_activation = Activation_Softmax_Loss_CategoricalCrossEntropy()
 
 #Create optimizer object
 optimizer = Optimizer_Adam(learning_rate=0.05, decay_rate=5e-7)
+
 
 for epoch in range(10001):
     #Perform a forward pass of data through the layer
@@ -47,7 +51,13 @@ for epoch in range(10001):
 
     #Perform forward pass through the activation/loss function
     #takes output of second dense layer and returns loss
-    loss = loss_activation.forward(dense2.output, y)
+    data_loss = loss_activation.forward(dense2.output, y)
+    
+    #Calculate regularization penalty
+    regularization_loss = loss_function.regularization_loss(dense1) + loss_function.regularization_loss(dense2)
+    
+    #Calculate overall loss
+    loss = data_loss + regularization_loss
     
     #Calculate the accuracy of the model
     #This is simply how often the models predictions are correct
@@ -57,14 +67,16 @@ for epoch in range(10001):
     accuracy = np.mean(predictions == y)
     
     if not epoch % 100:
-        print(f"epoch = {epoch}," + f"accuracy = {accuracy:.3f}," + f"loss = {loss:.3f}" +
-              f"learning rate = {optimizer.current_learning_rate:.3f}")
-    
+        print(f"epoch = {epoch}, " + f"accuracy = {accuracy:.3f}, " + f"loss = {loss:.3f}, " +
+              f"regularization_loss = {regularization_loss:.3f}, " +  f"learning rate = {optimizer.current_learning_rate:.3f}")
+        
+    #Perform backwards pass through the network
     loss_activation.backward(loss_activation.output, y)
     dense2.backward(loss_activation.dinputs)    
     activation1.backward(dense2.dinputs)
     dense1.backward(activation1.dinputs)
     
+    #Calculate parameter updates from the optimizer
     optimizer.pre_update_parameters()
     optimizer.update_parameters(dense1)
     optimizer.update_parameters(dense2)
