@@ -106,6 +106,48 @@ class Loss_BinaryCrossEntropy(Loss):
         #Normalize gradient
         self.dinputs = self.dinputs/samples
         
+class Loss_MeanSquaredError(Loss):
+    
+    def forward(self, y_predicted, y_actual):
+        #Basic loss calculation for the sample
+        sample_losses = np.mean((y_actual - y_predicted)**2, axis=-1)
+        
+        return sample_losses
+    
+    def backward(self, dvalues, y_actual):
+        
+        #No. samples
+        samples = len(dvalues)
+        #No. outputs in every sample
+        outputs = len(dvalues[0])
+        
+        #Gradient on values based on MSE equation
+        self.dinputs = -2 * (y_actual - dvalues) / outputs
+        #Normalize gradient
+        self.dinputs = self.dinputs / samples
+        
+class Loss_MeanAbsoluteError(Loss):
+    
+    def forward(self, y_predicted, y_actual):
+        #Basic loss calculation for the sample
+        sample_losses = np.mean(np.abs(y_actual - y_predicted), axis=-1)
+
+        return sample_losses
+
+    def backward(self, dvalues, y_actual):
+        
+        #No. samples
+        samples = len(dvalues)
+        #No. outputs in every sample
+        outputs = len(dvalues[0])
+        
+        #Gradient on values based on MAE equation
+        self.dinputs = np.sign(y_actual - dvalues) / outputs
+        #Normalize gradient
+        self.dinputs = self.dinputs / samples
+        
+        
+        
         
         
         

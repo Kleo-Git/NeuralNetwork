@@ -41,6 +41,18 @@ class Activation_Step:
         #This is why we dont use the step function
         self.dinputs = np.zeros_like(dvalues)
         
+class Activation_Linear:
+    #Forward pass
+    def forward(self, inputs):
+        #Remember values since simple linear function e.g. y=x
+        self.inputs = inputs
+        self.output = inputs
+        
+    def backward(self, dvalues):
+        #Derivative is simply 1*dvalues
+        self.dinputs = dvalues.copy()
+        
+        
 class Activation_Softmax:
     def forward(self, inputs): 
         
