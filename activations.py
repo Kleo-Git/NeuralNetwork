@@ -20,17 +20,14 @@ class Activation_Sigmoid:
     def forward(self, inputs):
         
         #Applies the Sigmoid activation function
-        #Returns input values in the range (0,1) using a curve
+        #Returns input values in the range (0,1)
         #Curve rapidly changes near 0, smoothes out at larger values
+        self.inputs = inputs
         self.output = 1 / (1+np.exp(-inputs))
     
     def backward(self, dvalues):
-        
-        #Make a copy so we can modify without changing the original values
-        self.dinputs = dvalues.copy()
-        
-        #Zero gradient if inputs are less then 0
-        self.dinputs = dvalues * (self.output * (1-self.output))
+        #Gradient of sigmoid function
+        self.dinputs = dvalues * self.output * (1-self.output)
         
 class Activation_Step:
     def forward(self, inputs):

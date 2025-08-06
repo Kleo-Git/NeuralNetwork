@@ -71,4 +71,57 @@ class Loss_CategoricalCrossEntropy(Loss):
         self.dinputs = -y_actual/dvalues
         #Normalize gradient
         self.dinputs = self.dinputs/samples
+        
+class Loss_BinaryCrossEntropy(Loss):
+    
+    #Forward Pass
+    def forward(self, y_predicted, y_actual):
+        
+        #Clip data to prevent division by 0
+        #Clip data on both sides to not drag the mean towards a value
+        y_predicted_clipped = np.clip(y_predicted, 1e-7, 1 - 1e-7)
+        
+        #Calculate losses sample wise
+        sample_losses = -(y_actual * np.log(y_predicted_clipped) + (1-y_actual) \
+                          * np.log(1 - y_predicted_clipped))
+        sample_losses = np.mean(sample_losses, axis = -1)
+        
+        #Return losses
+        return sample_losses
+        
+    def backward(self, dvalues, y_actual):
+        
+        #No. samples
+        samples = len(dvalues)
+        #No. outputs in every sample
+        outputs = len(dvalues[0])
+        
+        #Clip data for same reasons as forward pass clipping
+        clipped_dvalues = np.clip(dvalues, 1e-7, 1 - 1e-7)
+        
+        #Calculate gradient
+        self.dinputs = -(y_actual / clipped_dvalues - (1-y_actual) \
+                         / (1 - clipped_dvalues)) / outputs
+        
+        #Normalize gradient
+        self.dinputs = self.dinputs/samples
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
 
