@@ -6,7 +6,7 @@ class Layer_Dense:
                  bias_regularizer_l1=0, bias_regularizer_l2=0):
         
         #Initialize weights with small random values
-        self.weights = 0.01 * np.random.randn(n_inputs, n_neurons)
+        self.weights = 0.1 * np.random.randn(n_inputs, n_neurons)
         
         #Initialize biases with zeroes
         self.biases = np.zeros((1, n_neurons))
@@ -77,5 +77,11 @@ class Layer_Dropout:
         #Gradient on values
         self.dinputs = dvalues * self.binary_mask
         
+        
+class Layer_Input:
+    #Forward pass
+    def forward(self, inputs):
+        #Used for the model, the dataset is considered the first 'layer'
+        self.output = inputs
     
     
