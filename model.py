@@ -26,6 +26,9 @@ class Model:
         #Count all the objects
         layer_count = len(self.layers)
         
+        #Initialize a list of all trainable layers
+        self.trainable_layers = []
+        
         #Iterate the objects
         for i in range(layer_count):
             
@@ -43,6 +46,10 @@ class Model:
             else:
                 self.layers[i].prev = self.layers[i-1]
                 self.layers[i].next = self.loss
+                
+            #If a layer has a weights attribute, it must be a trainable layer
+            if hasattr(self.layers[i], "weights"):
+                self.trainable_layers.append(self.layers[i])
                 
     #Train the model
     def train(self, X, y, *, epochs=1, print_every=1):

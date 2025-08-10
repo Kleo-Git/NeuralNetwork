@@ -11,27 +11,35 @@ class Loss:
         data_loss = np.mean(sample_losses)
         
         #Return mean loss
-        return data_loss
+        return data_loss, self.regularization_loss()
     
     def regularization_loss(self, layer):
         #Start at 0 by default
         regularization_loss = 0
         
-        #Perform L1 regularization - weights
-        #Prevent performing needless caluclations when factor = 0
-        if layer.weight_regularizer_l1 > 0:
-            regularization_loss += layer.weight_regularizer_l1 * np.sum(np.abs(layer.weights))
-        #Perform L2 regularization - weights    
-        if layer.weight_regularizer_l2 > 0:
-            regularization_loss += layer.weight_regularizer_l2 * np.sum(layer.weights*layer.weights)
-        #Perform L1 regularization - biases       
-        if layer.bias_regularizer_l1 > 0:
-            regularization_loss += layer.bias_regularizer_l1 * np.sum(np.abs(layer.biases))
-        #Perform L2 regularization - biases  
-        if layer.weight_regularizer_l2 > 0:
-            regularization_loss += layer.bias_regularizer_l2 * np.sum(layer.biases * layer.biases)
-            
+        #Calculate regularization loss, over all trainable layers
+        for layer in self.trainable_layers:
+            #Perform L1 regularization - weights
+            #Prevent performing needless caluclations when factor = 0
+            if layer.weight_regularizer_l1 > 0:
+                regularization_loss += layer.weight_regularizer_l1 * np.sum(np.abs(layer.weights))
+            #Perform L2 regularization - weights    
+            if layer.weight_regularizer_l2 > 0:
+                regularization_loss += layer.weight_regularizer_l2 * np.sum(layer.weights*layer.weights)
+            #Perform L1 regularization - biases       
+            if layer.bias_regularizer_l1 > 0:
+                regularization_loss += layer.bias_regularizer_l1 * np.sum(np.abs(layer.biases))
+            #Perform L2 regularization - biases  
+            if layer.weight_regularizer_l2 > 0:
+                regularization_loss += layer.bias_regularizer_l2 * np.sum(layer.biases * layer.biases)
+                
         return regularization_loss
+    
+    #Set and remember trainable layers
+    def remember_trainable_layers(self, trainable_layers):
+        self.trainable_layers = trainable_layers
+            
+        
 class Loss_CategoricalCrossEntropy(Loss):
     
     #Forward Pass
