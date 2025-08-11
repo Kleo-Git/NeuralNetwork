@@ -17,7 +17,7 @@ class Layer_Dense:
         self.bias_regularizer_l1 = bias_regularizer_l1
         self.bias_regularizer_l2 = bias_regularizer_l2
         
-    def forward(self, inputs):
+    def forward(self, inputs, training):
         
         self.inputs = inputs
         #Compute the output of a foward pass of a layer
@@ -63,9 +63,15 @@ class Layer_Dropout:
         self.rate = 1-rate
         
     #Forward pass
-    def forward(self, inputs):
+    def forward(self, inputs, training):
         #Store input values
         self.inputs = inputs
+        
+        #If not in training mode, return values
+        if not training:
+            self.output = inputs.copy()
+            return
+        
         #Generate and save the scaled mask
         #Scaled to not not affect sum total given dropout
         self.binary_mask = np.random.binomial(1, self.rate, size=inputs.shape) / self.rate
@@ -80,7 +86,7 @@ class Layer_Dropout:
         
 class Layer_Input:
     #Forward pass
-    def forward(self, inputs):
+    def forward(self, inputs, training):
         #Used for the model, the dataset is considered the first 'layer'
         self.output = inputs
     

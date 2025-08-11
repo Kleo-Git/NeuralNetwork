@@ -1,7 +1,7 @@
 import numpy as np
 
 class Activation_ReLU:
-    def forward(self, inputs):
+    def forward(self, inputs, training):
         
         self.inputs = inputs
         #Applies the ReLU activation function
@@ -21,7 +21,7 @@ class Activation_ReLU:
         return outputs
         
 class Activation_Sigmoid:
-    def forward(self, inputs):
+    def forward(self, inputs, training):
         
         #Applies the Sigmoid activation function
         #Returns input values in the range (0,1)
@@ -38,7 +38,7 @@ class Activation_Sigmoid:
         return(outputs > 0.5) * 1
         
 class Activation_Step:
-    def forward(self, inputs):
+    def forward(self, inputs, training):
         
         #Applies the Step activation function
         #Returns 1 for inputs >= 0, otherwise returns 0
@@ -51,7 +51,7 @@ class Activation_Step:
         
 class Activation_Linear:
     #Forward pass
-    def forward(self, inputs):
+    def forward(self, inputs, training):
         #Remember values since simple linear function e.g. y=x
         self.inputs = inputs
         self.output = inputs
@@ -65,7 +65,7 @@ class Activation_Linear:
         return outputs
     
 class Activation_Softmax:
-    def forward(self, inputs): 
+    def forward(self, inputs, training): 
         
         self.inputs = inputs
         #Calculate the unormalized probabilties
