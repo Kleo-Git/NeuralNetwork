@@ -2,13 +2,17 @@ import numpy as np
 
 class Loss:
     #Calculates the data and regularization losses
-    def calculate(self, output, y):
+    def calculate(self, output, y, *, include_regularization = False):
         
         #Calculates the sample losses
         sample_losses = self.forward(output, y)
         
         #Calculate mean loss
         data_loss = np.mean(sample_losses)
+        
+        #If just data loss, return only that
+        if not include_regularization:
+            return data_loss
         
         #Return mean loss
         return data_loss, self.regularization_loss()

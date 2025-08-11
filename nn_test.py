@@ -8,27 +8,30 @@ from activations import Activation_ReLU, Activation_Sigmoid, Activation_Linear
 from combined import Activation_Softmax_Loss_CategoricalCrossEntropy
 from optimizers import Optimizer_SGD, Optimizer_Adagrad, Optimizer_RMSprop, Optimizer_Adam
 from model import Model
-from accuracy import Accuracy_Regression
+from accuracy import Accuracy_Regression, Accuracy_Categorical
 
-X, y = sine_data()
+X, y = spiral_data(100,2)
+X_test, y_test = spiral_data(100,2)
+
+
+y = y.reshape(-1,1)
+y_test = y_test.reshape(-1,1)
 
 model = Model()
 
-model.add(Layer_Dense(1, 64))
-model.add(Activation_ReLU())
-model.add(Layer_Dense(64, 64))
+model.add(Layer_Dense(2, 64, weight_regularizer_l1=5e-4, weight_regularizer_l2=5e-4))
 model.add(Activation_ReLU())
 model.add(Layer_Dense(64, 1))
-model.add(Activation_Linear())
+model.add(Activation_Sigmoid())
 
-model.set(loss = Loss_MeanSquaredError(),
-          optimizer=Optimizer_Adam(learning_rate=0.005, decay_rate=1e-3),
-          accuracy=Accuracy_Regression()
+model.set(loss = Loss_BinaryCrossEntropy(),
+          optimizer=Optimizer_Adam(decay_rate=5e-7),
+          accuracy=Accuracy_Categorical(binary=True)
 )
 
 model.finalize()
 
-model.train(X, y, epochs=10000, print_every=100)
+model.train(X, y, validation_data=(X_test, y_test), epochs=10000, print_every=100)
 
 
 

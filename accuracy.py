@@ -29,4 +29,24 @@ class Accuracy_Regression(Accuracy):
     #Compare predictions to true values
     def compare(self, predictions, y):
         return np.abs(predictions - y) < self.precision
+
+#Accuracy class for classification model
+class Accuracy_Categorical(Accuracy):
+    
+    def __init__(self, *, binary=False):
+        self.binary = binary
+        
+    #No intialization needed
+    def init(self, y):
+        pass
+    
+    #Compare predictions to true values
+    def compare(self, predictions, y):
+        if not self.binary and len(y.shape) == 2:
+            y = np.argmax(y, axis = 1)
+        return predictions == y
+    
+
+    
+    
     

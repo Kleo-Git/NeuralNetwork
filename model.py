@@ -56,7 +56,7 @@ class Model:
         self.loss.remember_trainable_layers(self.trainable_layers)
                 
     #Train the model
-    def train(self, X, y, *, epochs=1, print_every=1):
+    def train(self, X, y, *, epochs=1, print_every=1, validation_data = None):
         
         #Initialize accuracy object
         self.accuracy.init(y)
@@ -67,7 +67,7 @@ class Model:
             output = self.forward(X)
             
             #Calculate loss
-            data_loss, regularization_loss = self.loss.calculate(output, y)
+            data_loss, regularization_loss = self.loss.calculate(output, y, include_regularization = True)
             loss = data_loss + regularization_loss
             
             #Get predictions and calculate accuracy
@@ -86,6 +86,24 @@ class Model:
             if not epoch % print_every:
                 print(f"epoch = {epoch}, " + f"accuracy = {accuracy:.3f}, " + f"loss = {loss:.3f}, " + f"data_loss = {data_loss:.3f}, " +
                       f"regularization_loss = {regularization_loss:.3f}, " +  f"learning rate = {self.optimizer.current_learning_rate:.8f}")
+            
+            if validation_data is not None:
+                
+                #Defining the validation data
+                X_val, y_val = validation_data
+                
+                #Perform forward pass
+                output = self.forward(X_val)
+                
+                #Calculate loss
+                loss = self.loss.calculate(output, y_val)
+                
+                #Get predictions and calcualte accuracy
+                predictions = self.output_layer_activation.predictions(output)
+                accuracy = self.accuracy.calculate(predictions, y_val)
+                
+                print(f"validation, " + f"accuracy = {accuracy:.3f}, " 
+                      + f"loss = {loss:.3f}, ")
             
     #Perform forward pass
     def forward(self, X):
