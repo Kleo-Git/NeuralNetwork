@@ -16,6 +16,10 @@ class Activation_ReLU:
         #Zero gradient if inputs are less then 0
         self.dinputs[self.inputs <= 0] = 0
         
+    # Calculate predictions for outputs
+    def predictions(self, outputs):
+        return outputs
+        
 class Activation_Sigmoid:
     def forward(self, inputs):
         
@@ -28,6 +32,10 @@ class Activation_Sigmoid:
     def backward(self, dvalues):
         #Gradient of sigmoid function
         self.dinputs = dvalues * self.output * (1-self.output)
+    
+    # Calculate predictions for outputs
+    def predictions(self, outputs):
+        return(outputs > 0.5) * 1
         
 class Activation_Step:
     def forward(self, inputs):
@@ -51,8 +59,11 @@ class Activation_Linear:
     def backward(self, dvalues):
         #Derivative is simply 1*dvalues
         self.dinputs = dvalues.copy()
-        
-        
+    
+    # Calculate predictions for outputs
+    def predictions(self, outputs):
+        return outputs
+    
 class Activation_Softmax:
     def forward(self, inputs): 
         
@@ -77,3 +88,7 @@ class Activation_Softmax:
             jacobian = np.diagflat(single_output) - np.dot(single_output, single_output.T)
             #Calculate sample wise gradient and add to array of sample gradients
             self.dinputs[i] = np.dot(jacobian, single_dvalues)
+            
+    # Calculate predictions for outputs
+    def predictions(self, outputs):
+        return np.argmax(outputs, axis=1)

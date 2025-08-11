@@ -13,7 +13,7 @@ class Loss:
         #Return mean loss
         return data_loss, self.regularization_loss()
     
-    def regularization_loss(self, layer):
+    def regularization_loss(self):
         #Start at 0 by default
         regularization_loss = 0
         

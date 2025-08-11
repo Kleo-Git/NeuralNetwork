@@ -12,10 +12,11 @@ class Model:
     def add(self, layer):
         self.layers.append(layer)
         
-    #Set loss and optimizer
-    def set(self, *, loss, optimizer):
+    #Set loss, optimizer and accuracy
+    def set(self, *, loss, optimizer, accuracy):
         self.loss = loss
         self.optimizer = optimizer
+        self.accuracy = accuracy
 
     #Finalize the model
     def finalize(self):
@@ -46,22 +47,46 @@ class Model:
             else:
                 self.layers[i].prev = self.layers[i-1]
                 self.layers[i].next = self.loss
+                self.output_layer_activation = self.layers[i]
                 
             #If a layer has a weights attribute, it must be a trainable layer
             if hasattr(self.layers[i], "weights"):
                 self.trainable_layers.append(self.layers[i])
                 
+        self.loss.remember_trainable_layers(self.trainable_layers)
+                
     #Train the model
     def train(self, X, y, *, epochs=1, print_every=1):
+        
+        #Initialize accuracy object
+        self.accuracy.init(y)
+        
         #Main training loop
         for epoch in range(1,epochs+1):
             #Forward pass
             output = self.forward(X)
             
-            #Temp
-            print(output)
-            exit()
-    
+            #Calculate loss
+            data_loss, regularization_loss = self.loss.calculate(output, y)
+            loss = data_loss + regularization_loss
+            
+            #Get predictions and calculate accuracy
+            predictions = self.output_layer_activation.predictions(output)
+            accuracy = self.accuracy.calculate(predictions, y)    
+            
+            #Perform backward pass
+            self.backward(output, y)
+            
+            #Optimize the network
+            self.optimizer.pre_update_parameters()
+            for layer in self.trainable_layers:
+                self.optimizer.update_parameters(layer)
+            self.optimizer.post_update_parameters()
+            
+            if not epoch % print_every:
+                print(f"epoch = {epoch}, " + f"accuracy = {accuracy:.3f}, " + f"loss = {loss:.3f}, " + f"data_loss = {data_loss:.3f}, " +
+                      f"regularization_loss = {regularization_loss:.3f}, " +  f"learning rate = {self.optimizer.current_learning_rate:.8f}")
+            
     #Perform forward pass
     def forward(self, X):
         #Calls the input layer, setting the output property correctly
@@ -74,6 +99,14 @@ class Model:
         #Last object in list, return its value
         return layer.output
     
+    #Performs backward pass
+    def backward(self, output, y):
+        #Call backward method on the loss
+        self.loss.backward(output, y)
+        
+        #Call backward method going through all objects reversed
+        for layer in reversed(self.layers):
+            layer.backward(layer.next.dinputs)
             
     
         
