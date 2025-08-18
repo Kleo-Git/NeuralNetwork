@@ -1,3 +1,5 @@
+import os
+import cv2
 import numpy as np
 import matplotlib.pyplot as plt
 import nnfs
@@ -10,32 +12,13 @@ from optimizers import Optimizer_SGD, Optimizer_Adagrad, Optimizer_RMSprop, Opti
 from model import Model
 from accuracy import Accuracy_Regression, Accuracy_Categorical
 
-X, y = spiral_data(1000,3)
-X_test, y_test = spiral_data(1000,3)
 
-model = Model()
+labels = os.listdir("fashion_mnist_images/train")
+files = os.listdir("fashion_mnist_images/train/0")
 
-model.add(Layer_Dense(2, 256, weight_regularizer_l1=5e-4, weight_regularizer_l2=5e-4))
-model.add(Activation_ReLU())
-model.add(Layer_Dropout(0.1))
-model.add(Layer_Dense(256, 3))
-model.add(Activation_Softmax())
+img = cv2.imread("fashion_mnist_images/train/4/0011.png", cv2.IMREAD_UNCHANGED)
 
-model.set(loss = Loss_CategoricalCrossEntropy(),
-          optimizer=Optimizer_Adam(learning_rate=0.05, decay_rate=5e-5),
-          accuracy=Accuracy_Categorical()
-)
-
-model.finalize()
-
-model.train(X, y, validation_data=(X_test, y_test), epochs=1000, print_every=100)
-
-
-
-
-
-
-
-
+plt.imshow(img, cmap = "gray")
+plt.show()
 
 
