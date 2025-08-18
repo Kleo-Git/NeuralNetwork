@@ -11,14 +11,8 @@ from combined import Activation_Softmax_Loss_CategoricalCrossEntropy
 from optimizers import Optimizer_SGD, Optimizer_Adagrad, Optimizer_RMSprop, Optimizer_Adam
 from model import Model
 from accuracy import Accuracy_Regression, Accuracy_Categorical
+from create_data import create_data_mnist
 
 
-labels = os.listdir("fashion_mnist_images/train")
-files = os.listdir("fashion_mnist_images/train/0")
-
-img = cv2.imread("fashion_mnist_images/train/4/0011.png", cv2.IMREAD_UNCHANGED)
-
-plt.imshow(img, cmap = "gray")
-plt.show()
-
-
+#Create dataset
+X, y, X_test, y_test = create_data_mnist('fashion_mnist_images')
